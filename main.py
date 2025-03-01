@@ -266,8 +266,8 @@ class FeynmanChatbot(QMainWindow):
         # Set up the main background gradient
         main_palette = self.palette()
         gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QColor(245, 245, 250))
-        gradient.setColorAt(1, QColor(235, 235, 245))
+        gradient.setColorAt(0, QColor('#FEFAE0'))
+        gradient.setColorAt(1, QColor('#E9EDC9'))
         main_palette.setBrush(QPalette.ColorRole.Window, gradient)
         self.setPalette(main_palette)
         
@@ -282,6 +282,7 @@ class FeynmanChatbot(QMainWindow):
         header_layout = QHBoxLayout()
         title_label = QLabel("Enso")
         title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title_label.setStyleSheet("color: #D4A373;")
         header_layout.addWidget(title_label)
         header_layout.addStretch()
         main_layout.addLayout(header_layout)
@@ -291,9 +292,9 @@ class FeynmanChatbot(QMainWindow):
         self.doc_tile.setObjectName("docTile")
         self.doc_tile.setStyleSheet("""
             #docTile {
-                background-color: black;
+                background-color: #D4A373;
                 border-radius: 15px;
-                border: 1px solid #e0e0e0;
+                border: none;
             }
         """)
         doc_tile_layout = QVBoxLayout(self.doc_tile)
@@ -307,170 +308,173 @@ class FeynmanChatbot(QMainWindow):
         # Document selection controls
         doc_controls_layout = QHBoxLayout()
         
-        # Upload button with icon
-        self.upload_btn = QPushButton()
-        self.upload_btn.setIcon(QIcon("/Users/hazikchaudhry/Documents/new feyman/icons/Add_square_duotone.png"))
-        self.upload_btn.setIconSize(QSize(24, 24))
-        self.upload_btn.setText("Upload Document")
+        # Initialize upload button
+        self.upload_btn = QPushButton("Upload")
         self.upload_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f0f0f5;
+                background-color: #FEFAE0;
                 border-radius: 8px;
-                padding: 8px 15px;
-                font-size: 14px;
-                border: none;
+                padding: 8px;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
             }
             QPushButton:hover {
-                background-color: #e0e0e5;
+                background-color: #E9EDC9;
             }
         """)
+        
+        # Status label for progress updates
+        self.status_label = QLabel()
+        self.status_label.setStyleSheet("color: #D4A373;")
+        doc_tile_layout.addWidget(self.status_label)
         self.upload_btn.clicked.connect(self.upload_document)
-        doc_controls_layout.addWidget(self.upload_btn)
         
-        # Page range inputs
-        page_range_layout = QHBoxLayout()
-        page_range_layout.setSpacing(5)
+        # Initialize model selector
+        self.model_selector = QComboBox()
+        self.model_selector.addItems(["mistral", "deepseek-r1:7b", "llama2"])
+        doc_controls_layout.addWidget(self.model_selector)
         
+        # Initialize settings button
+        self.settings_btn = QPushButton()
+        self.settings_btn.setIcon(QIcon("/Users/hazikchaudhry/Documents/new feyman/icons/Setting_line.png"))
+        self.settings_btn.setIconSize(QSize(24, 24))
+        doc_controls_layout.addWidget(self.settings_btn)
+        
+        # Initialize progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(False)
+        
+        # Initialize page range inputs
         self.page_start = QLineEdit()
         self.page_start.setPlaceholderText("Start Page")
-        self.page_start.setFixedWidth(100)
-        self.page_start.setStyleSheet("""
-            QLineEdit {
-                border-radius: 8px;
-                padding: 8px;
-                background-color: #f5f5f5;
-                border: 1px solid #e0e0e0;
-            }
-        """)
-        page_range_layout.addWidget(self.page_start)
-        
-        page_range_layout.addWidget(QLabel("-"))
-        
         self.page_end = QLineEdit()
         self.page_end.setPlaceholderText("End Page")
-        self.page_end.setFixedWidth(100)
-        self.page_end.setStyleSheet("""
+        
+        # Add page inputs to layout
+        doc_controls_layout.addWidget(self.page_start)
+        doc_controls_layout.addWidget(self.page_end)
+        
+        # Add the upload button to the layout
+        doc_controls_layout.addWidget(self.upload_btn)
+        
+        # Add the progress bar to the layout
+        doc_tile_layout.addWidget(self.progress_bar)
+        
+        # Add the document controls layout to the tile layout
+        doc_tile_layout.addLayout(doc_controls_layout)
+        
+        # Add the document tile to the main layout
+        main_layout.addWidget(self.doc_tile)
+        
+        # Create chat container
+        chat_container = QFrame()
+        chat_container.setObjectName("chatContainer")
+        chat_layout = QVBoxLayout(chat_container)
+        
+        # Create scroll area for chat
+        chat_scroll_area = QScrollArea()
+        chat_scroll_area.setWidgetResizable(True)
+        chat_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        # Create content widget for scroll area
+        chat_content_widget = QWidget()
+        self.chat_content_layout = QVBoxLayout(chat_content_widget)
+        
+        # Initialize chat display
+        self.chat_display = QTextEdit()
+        self.chat_display.setReadOnly(True)
+        
+        # Status label for progress updates
+        self.status_label = QLabel()
+        self.status_label.setStyleSheet("color: #D4A373;")
+        doc_tile_layout.addWidget(self.status_label)
+        
+        # Page range inputs styling
+        page_input_style = """
             QLineEdit {
                 border-radius: 8px;
                 padding: 8px;
-                background-color: #f5f5f5;
-                border: 1px solid #e0e0e0;
+                background-color: #FAEDCD;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
             }
-        """)
-        page_range_layout.addWidget(self.page_end)
+        """
+        self.page_start.setStyleSheet(page_input_style)
+        self.page_end.setStyleSheet(page_input_style)
         
-        doc_controls_layout.addLayout(page_range_layout)
-        
-        # Model selector
-        model_layout = QHBoxLayout()
-        model_label = QLabel("Model:")
-        model_layout.addWidget(model_label)
-        
-        self.model_selector = QComboBox()
-        self.model_selector.addItems(["deepseek-r1:7b", "mistral", "llama2"])
+        # Model selector styling
         self.model_selector.setStyleSheet("""
             QComboBox {
                 border-radius: 8px;
                 padding: 8px;
-                background-color: #f5f5f5;
-                border: 1px solid #e0e0e0;
+                background-color: #FAEDCD;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
                 min-width: 150px;
             }
+            QComboBox::drop-down {
+                border: none;
+            }
+            QComboBox::down-arrow {
+                border: none;
+                background: #D4A373;
+            }
         """)
-        model_layout.addWidget(self.model_selector)
         
-        # Settings button
-        self.settings_btn = QPushButton()
-        self.settings_btn.setIcon(QIcon("/Users/hazikchaudhry/Documents/new feyman/icons/Setting_line.png"))
-        self.settings_btn.setIconSize(QSize(20, 20))
-        self.settings_btn.setFixedSize(40, 40)
+        # Settings button styling
         self.settings_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f0f0f5;
+                background-color: #FAEDCD;
                 border-radius: 20px;
                 border: none;
             }
             QPushButton:hover {
-                background-color: #e0e0e5;
+                background-color: #FEFAE0;
             }
         """)
-        model_layout.addWidget(self.settings_btn)
         
-        doc_controls_layout.addLayout(model_layout)
-        doc_tile_layout.addLayout(doc_controls_layout)
-        
-        # Progress indicators
-        progress_layout = QHBoxLayout()
-        self.status_label = QLabel()
-        self.status_label.setStyleSheet("color: #555;")
-        progress_layout.addWidget(self.status_label)
-        
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
+        # Progress bar styling
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 border-radius: 5px;
-                background-color: #f0f0f0;
+                background-color: #FAEDCD;
                 text-align: center;
                 height: 10px;
             }
             QProgressBar::chunk {
-                background-color: #4a86e8;
+                background-color: #D4A373;
                 border-radius: 5px;
             }
         """)
-        progress_layout.addWidget(self.progress_bar)
         
-        doc_tile_layout.addLayout(progress_layout)
-        main_layout.addWidget(self.doc_tile)
-        
-        # Simple chat area
-        chat_container = QFrame()
-        chat_container.setObjectName("chatContainer")
+        # Chat container styling
         chat_container.setStyleSheet("""
             #chatContainer {
-                background-color: white;
-                border: 1px solid #e0e0e0;
-            }
-        """)
-        chat_layout = QVBoxLayout(chat_container)
-        
-        # Create scroll area for chat content
-        chat_scroll_area = QScrollArea()
-        chat_scroll_area.setWidgetResizable(True)
-        chat_scroll_area.setStyleSheet("""
-            QScrollArea {
-                border: none;
-                background-color: white;
+                background-color: #FEFAE0;
+                border: 1px solid #CCD5AE;
+                border-radius: 15px;
             }
         """)
         
-        # Create widget to hold chat content
-        chat_content_widget = QWidget()
-        self.chat_content_layout = QVBoxLayout(chat_content_widget)
-        self.chat_content_layout.setContentsMargins(10, 10, 10, 10)
-        self.chat_content_layout.setSpacing(10)
-        
-        # Chat display area with proper scrolling
-        self.chat_display = QTextEdit()
-        self.chat_display.setReadOnly(True)
-        self.chat_display.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        # Chat display styling
         self.chat_display.setStyleSheet("""
             QTextEdit {
                 border: none;
-                background-color: black;
+                background-color: #FEFAE0;
                 font-family: monospace;
                 font-size: 14px;
                 line-height: 1.5;
                 padding: 10px;
+                color: #D4A373;
             }
             QScrollBar:vertical {
-                background: #2b2b2b;
+                background: #E9EDC9;
                 width: 12px;
                 margin: 0px;
+                border-radius: 6px;
             }
             QScrollBar::handle:vertical {
-                background: #4a4a4a;
+                background: #CCD5AE;
                 min-height: 20px;
                 border-radius: 6px;
             }
@@ -493,9 +497,9 @@ class FeynmanChatbot(QMainWindow):
         input_frame = QFrame()
         input_frame.setStyleSheet("""
             QFrame {
-                background-color: #f5f5f5;
+                background-color: #FAEDCD;
                 border-radius: 10px;
-                border: 1px solid #e0e0e0;
+                border: 1px solid #CCD5AE;
                 margin: 10px;
             }
         """)
@@ -511,16 +515,15 @@ class FeynmanChatbot(QMainWindow):
         bold_btn.setFixedSize(30, 30)
         bold_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f0f0f0;
+                background-color: #FEFAE0;
                 border-radius: 5px;
-                border: 1px solid #d0d0d0;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
             }
             QPushButton:hover {
-                background-color: #e0e0e0;
+                background-color: #E9EDC9;
             }
         """)
-        bold_btn.clicked.connect(self.apply_bold)
-        toolbar_layout.addWidget(bold_btn)
         
         # Italic button
         italic_btn = QPushButton("I")
@@ -528,16 +531,15 @@ class FeynmanChatbot(QMainWindow):
         italic_btn.setFixedSize(30, 30)
         italic_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f0f0f0;
+                background-color: #FEFAE0;
                 border-radius: 5px;
-                border: 1px solid #d0d0d0;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
             }
             QPushButton:hover {
-                background-color: #e0e0e0;
+                background-color: #E9EDC9;
             }
         """)
-        italic_btn.clicked.connect(self.apply_italic)
-        toolbar_layout.addWidget(italic_btn)
         
         # Bullet list button
         bullet_btn = QPushButton("•")
@@ -545,16 +547,15 @@ class FeynmanChatbot(QMainWindow):
         bullet_btn.setFixedSize(30, 30)
         bullet_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f0f0f0;
+                background-color: #FEFAE0;
                 border-radius: 5px;
-                border: 1px solid #d0d0d0;
+                border: 1px solid #CCD5AE;
+                color: #D4A373;
             }
             QPushButton:hover {
-                background-color: #e0e0e0;
+                background-color: #E9EDC9;
             }
         """)
-        bullet_btn.clicked.connect(self.apply_bullet)
-        toolbar_layout.addWidget(bullet_btn)
         
         # Add spacer to push buttons to the left
         toolbar_layout.addStretch()
