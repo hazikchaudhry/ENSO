@@ -424,57 +424,70 @@ class FeynmanChatbot(QMainWindow):
         doc_tile_layout.addLayout(progress_layout)
         main_layout.addWidget(self.doc_tile)
         
-        # Chat area
+        # Simple chat area
         chat_container = QFrame()
         chat_container.setObjectName("chatContainer")
         chat_container.setStyleSheet("""
             #chatContainer {
                 background-color: white;
-                border-radius: 15px;
                 border: 1px solid #e0e0e0;
             }
         """)
         chat_layout = QVBoxLayout(chat_container)
         
-        # Custom QTextEdit for styled messages
-        self.chat_display = QTextEdit()
-        self.chat_display.setReadOnly(True)
-        self.chat_display.setStyleSheet("""
-            QTextEdit {
+        # Create scroll area for chat content
+        chat_scroll_area = QScrollArea()
+        chat_scroll_area.setWidgetResizable(True)
+        chat_scroll_area.setStyleSheet("""
+            QScrollArea {
                 border: none;
-                background-color: #ffffff;
-                font-family: 'Segoe UI', Arial, sans-serif;
-                font-size: 14px;
-                line-height: 1.5;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #f1f1f1;
-                width: 10px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background: #c1c1c1;
-                min-height: 30px;
-                border-radius: 5px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #a8a8a8;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                border: none;
-                background: none;
-                height: 0px;
+                background-color: white;
             }
         """)
         
-        # Set a fixed policy to ensure the chat display expands properly
-        self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # Create widget to hold chat content
+        chat_content_widget = QWidget()
+        self.chat_content_layout = QVBoxLayout(chat_content_widget)
+        self.chat_content_layout.setContentsMargins(10, 10, 10, 10)
+        self.chat_content_layout.setSpacing(10)
         
-        # Set document margins for better text display
-        self.chat_display.document().setDocumentMargin(0)
+        # Chat display area with proper scrolling
+        self.chat_display = QTextEdit()
+        self.chat_display.setReadOnly(True)
+        self.chat_display.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.chat_display.setStyleSheet("""
+            QTextEdit {
+                border: none;
+                background-color: black;
+                font-family: monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                padding: 10px;
+            }
+            QScrollBar:vertical {
+                background: #2b2b2b;
+                width: 12px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #4a4a4a;
+                min-height: 20px;
+                border-radius: 6px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
+        self.chat_display.document().setDocumentMargin(10)
         
-        chat_layout.addWidget(self.chat_display)
+        # Add the chat display to the content layout
+        self.chat_content_layout.addWidget(self.chat_display)
+        
+        # Set the content widget as the scroll area's widget
+        chat_scroll_area.setWidget(chat_content_widget)
+        
+        # Add the scroll area to the chat layout
+        chat_layout.addWidget(chat_scroll_area, 1)  # Give it a stretch factor of 1
         
         # Input area
         input_frame = QFrame()
@@ -483,6 +496,7 @@ class FeynmanChatbot(QMainWindow):
                 background-color: #f5f5f5;
                 border-radius: 10px;
                 border: 1px solid #e0e0e0;
+                margin: 10px;
             }
         """)
         input_layout = QVBoxLayout(input_frame)
@@ -723,130 +737,89 @@ class FeynmanChatbot(QMainWindow):
             self.user_input.setEnabled(True)
             
     def append_user_message(self, text):
-        """Append a styled user message to the chat display"""
+        """Append a user message to the chat display"""
         # Save the message for edit functionality
         self.last_user_message = text
         
-        # Create HTML for user message with ChatGPT-like styling
-        html = f"""
-        <div style="width: 100%; background-color: #f0f4ff; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
-            <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
-                <div style="display: flex; align-items: flex-start;">
-                    <div style="width: 30px; height: 30px; background-color: #5436DA; border-radius: 50%; 
-                              display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
-                        <span style="color: white; font-weight: bold;">U</span>
-                    </div>
-                    <div style="flex-grow: 1; background-color: #e9ecff; padding: 10px 14px; border-radius: 12px;">
-                        {text}
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
-        self.chat_display.insertHtml(html)
+        # Add to conversation history
+        self.conversation_history.append(text)
         
-        # Ensure the view scrolls to show the new message
+        # Move cursor to end and ensure proper spacing
         self.chat_display.moveCursor(QTextCursor.MoveOperation.End)
-        self.chat_display.ensureCursorVisible()
-        self.last_user_message_pos = self.chat_display.textCursor().position()
+        cursor = self.chat_display.textCursor()
         
+        # Add spacing if not at the start of the document
+        if cursor.position() > 0:
+            self.chat_display.insertPlainText("\n")
+        
+        # Insert user message with consistent formatting
+        message = f"User: {text}\n"
+        self.chat_display.insertPlainText(message)
+        
+        # Store position and ensure visibility
+        self.last_user_message_pos = self.chat_display.textCursor().position()
+        self.chat_display.ensureCursorVisible()
+
     def append_ai_message(self, text):
-        """Append a styled AI message to the chat display"""
+        """Append an AI message to the chat display"""
         # Save the message for refresh functionality
         self.last_ai_message = text
         
-        # Create HTML for AI message with ChatGPT-like styling
-        html = f"""
-        <div style="width: 100%; background-color: #fafafa; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
-            <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
-                <div style="display: flex; align-items: flex-start;">
-                    <div style="width: 30px; height: 30px; background-color: #10a37f; border-radius: 50%; 
-                              display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
-                        <span style="color: white; font-weight: bold;">AI</span>
-                    </div>
-                    <div style="flex-grow: 1; background-color: #f0f7f5; padding: 10px 14px; border-radius: 12px;">
-                        {text}
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
-        self.chat_display.insertHtml(html)
-        
-        # Ensure the view scrolls to show the new message
-        self.chat_display.moveCursor(QTextCursor.MoveOperation.End)
-        self.chat_display.ensureCursorVisible()
-        self.last_ai_message_pos = self.chat_display.textCursor().position()
+        # Only add to conversation history and display if it's not a streaming response
+        if self.current_ai_response is None:
+            # Add to conversation history if not already added
+            if text not in self.conversation_history:
+                self.conversation_history.append(text)
+            
+            # Move cursor to end and ensure proper spacing
+            self.chat_display.moveCursor(QTextCursor.MoveOperation.End)
+            cursor = self.chat_display.textCursor()
+            
+            # Add spacing if not at the start of the document
+            if cursor.position() > 0:
+                self.chat_display.insertPlainText("\n")
+            
+            # Insert AI message with consistent formatting
+            message = f"AI: {text}\n"
+            self.chat_display.insertPlainText(message)
+            
+            # Store position and ensure visibility
+            self.last_ai_message_pos = self.chat_display.textCursor().position()
+            self.chat_display.ensureCursorVisible()
     
     def _handle_token(self, token: str):
         """Handle incoming tokens from the chat worker"""
-        # If this is the first token, remove the typing indicator and start a new AI message
+        # If this is the first token, start a new AI message
         if self.current_ai_response is None:
             self.current_ai_response = ""
+            self.chat_display.moveCursor(QTextCursor.MoveOperation.End)
+            cursor = self.chat_display.textCursor()
             
-            # Create a new AI message container with ChatGPT-like styling
-            html = """
-            <div style="width: 100%; background-color: #fafafa; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
-                <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
-                    <div style="display: flex; align-items: flex-start;">
-                        <div style="width: 30px; height: 30px; background-color: #10a37f; border-radius: 50%; 
-                                  display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
-                            <span style="color: white; font-weight: bold;">AI</span>
-                        </div>
-                        <div id="streaming_response" style="flex-grow: 1; background-color: #f0f7f5; padding: 10px 14px; border-radius: 12px;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """
-            self.chat_display.insertHtml(html)
+            # Add spacing if not at the start of the document
+            if cursor.position() > 0:
+                self.chat_display.insertPlainText("\n")
             
+            self.chat_display.insertPlainText("AI: ")
+        
         self.current_ai_response += token
+        self.chat_display.insertPlainText(token)
         
-        # Find the streaming response div and update its content
-        document = self.chat_display.document()
-        cursor = QTextCursor(document)
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-        
-        # Find the streaming response div
-        found = cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock)
-        if found:
-            cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock)
-            cursor.insertText(token)
-            
         # Keep the scroll at the bottom
         self.chat_display.verticalScrollBar().setValue(
             self.chat_display.verticalScrollBar().maximum()
         )
-        
+        self.last_ai_message_pos = self.chat_display.textCursor().position()
+
     def _handle_response_finished(self, full_response: str):
         """Handle when the chat response is complete"""
         # Clear the current response buffer
-        temp_response = self.current_ai_response
         self.current_ai_response = None
-        
-        # Remove the streaming response div
-        document = self.chat_display.document()
-        cursor = QTextCursor(document)
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-        
-        # Find and remove the streaming message
-        found = cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock)
-        if found:
-            # Move to the start of the entire div container
-            for _ in range(8):  # Navigate up through the HTML structure (adjusted for new format)
-                if not cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock):
-                    break
-            
-            # Select from current position to the end of the streaming message
-            cursor.movePosition(QTextCursor.MoveOperation.NextBlock, cursor.MoveMode.KeepAnchor, 8)
-            cursor.removeSelectedText()
-        
-        # Add the complete AI message with proper styling
-        self.append_ai_message(full_response)
         
         # Add to conversation history
         self.conversation_history.append(full_response)
+        
+        # Add an extra newline for better spacing
+        self.chat_display.insertPlainText("\n")
         
         # Ensure the chat display is scrolled to the bottom
         self.chat_display.verticalScrollBar().setValue(
@@ -858,7 +831,7 @@ class FeynmanChatbot(QMainWindow):
         
         # Set focus back to the input box for immediate typing
         self.user_input.setFocus()
-    
+
     def _update_conversation_state(self, user_text):
         """Update conversation state based on user's response"""
         # Simple state tracking for conversation
