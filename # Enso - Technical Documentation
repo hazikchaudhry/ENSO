@@ -1,0 +1,138 @@
+# Enso - Technical Documentation
+
+## Overview
+Enso is a PyQt6-based desktop application that implements an AI-powered learning companion using the Feynman Technique. The application allows users to upload documents (PDF, DOCX, or TXT), processes them using natural language processing techniques, and engages users in a conversational learning experience guided by an AI model.
+
+## Technical Architecture
+
+### Core Technologies
+- **UI Framework**: PyQt6
+- **Document Processing**: PyMuPDF (fitz), python-docx
+- **AI/ML Components**: 
+  - LangChain for orchestrating AI workflows
+  - Ollama for local LLM inference
+  - HuggingFace embeddings for text vectorization
+  - FAISS for vector similarity search
+
+### Main Components
+
+1. **FeynmanChatbot (QMainWindow)**
+   - Main application window and controller
+   - Manages UI components, document processing, and conversation flow
+   - Initializes the Ollama LLM model with streaming capability
+
+2. **ProcessingThread (QThread)**
+   - Handles document processing in a separate thread to prevent UI freezing
+   - Extracts text from documents based on file type
+   - Creates text chunks using RecursiveCharacterTextSplitter
+   - Generates embeddings using HuggingFaceEmbeddings
+   - Creates a FAISS vector store for similarity search
+   - Initializes the LLM model
+
+3. **ChatWorker (QThread)**
+   - Manages AI response generation in a separate thread
+   - Formats conversation history for context
+   - Constructs prompts using ChatPromptTemplate
+   - Streams tokens from the LLM to enable real-time response display
+   - Emits signals for token streaming and completion
+
+## Detailed Workflow
+
+### Document Processing
+1. User selects a document (PDF, DOCX, or TXT) via file dialog
+2. Optional page range parameters are collected
+3. ProcessingThread is initialized with file path, page range, and selected model
+4. Text extraction is performed based on file type:
+   - PDF: PyMuPDF extracts text from specified page range
+   - DOCX: python-docx extracts text from paragraphs
+   - TXT: Direct file reading with UTF-8 encoding
+5. Text is split into chunks (1000 chars with 200 char overlap)
+6. HuggingFace embeddings are generated using "sentence-transformers/all-mpnet-base-v2"
+7. FAISS vector store is created from text chunks and embeddings
+8. Ollama LLM is initialized with the selected model
+
+### Conversation Flow
+1. Initial greeting is displayed after document processing
+2. User inputs text via rich text editor
+3. User message is displayed with styling and added to conversation history
+4. Conversation state is updated based on user input
+5. Relevant context is retrieved from vector store using similarity search
+6. ChatWorker is initialized with:
+   - User question
+   - Retrieved context
+   - Conversation history
+   - Teaching state (topic, understanding level, depth level)
+7. LLM generates response using a sophisticated prompt template
+8. Tokens are streamed in real-time and displayed with typing animation
+9. Complete response is formatted and added to conversation history
+
+### UI Components
+1. **Document Upload Tile**
+   - Upload button with icon
+   - Page range inputs (start/end)
+   - Model selector dropdown (deepseek-r1:7b, mistral, llama2)
+   - Settings button
+   - Progress indicators (status label and progress bar)
+
+2. **Chat Interface**
+   - Chat display area (QTextEdit with custom styling)
+   - Rich text input area with formatting toolbar
+   - Send button
+
+3. **Text Formatting**
+   - Bold formatting
+   - Italic formatting
+   - Bullet points
+
+## Technical Implementation Details
+
+### Threading Model
+- Main UI thread handles user interactions
+- Document processing runs in ProcessingThread to prevent UI freezing
+- AI response generation runs in ChatWorker thread with token streaming
+
+### Signal-Slot Connections
+- ProcessingThread.progress → FeynmanChatbot.update_progress
+- ProcessingThread.finished → FeynmanChatbot.processing_complete
+- ChatWorker.token_received → FeynmanChatbot._handle_token
+- ChatWorker.finished → FeynmanChatbot._handle_response_finished
+
+### Message Styling
+- User and AI messages are styled with HTML/CSS for a ChatGPT-like appearance
+- Messages include avatar circles, background colors, and rounded corners
+- Streaming responses are displayed in real-time with token-by-token updates
+
+### Conversation State Management
+- Tracks conversation state (introduction, exploring, etc.)
+- Identifies key concepts from user input
+- Maintains conversation history for context
+- Manages teaching state with topic, understanding level, and depth level
+
+### LLM Prompting
+- Uses a sophisticated system prompt that implements the Feynman Technique
+- Includes detailed instructions for conversational style and question techniques
+- Provides conversation history and relevant document context
+- Guides the AI to ask focused, natural questions that deepen understanding
+
+### Rich Text Handling
+- Supports HTML formatting in user input
+- Implements bold, italic, and bullet formatting
+- Handles cursor positioning for formatting operations
+
+## AI Behavior Configuration
+- Temperature: 0.7 (moderate creativity)
+- Streaming: Enabled for real-time response display
+- Conversation style: Friendly, curious learning companion
+- Question techniques: Basic questions, metaphors/analogies, comparisons, scenarios, Socratic questioning
+- Response style: Short, conversational, focused on one concept at a time
+
+## Resource Management
+- Proper cleanup in closeEvent to terminate running threads
+- Document processing resources are released after completion
+- UI elements are enabled/disabled appropriately during processing
+
+## Error Handling
+- Try-except blocks for document processing and AI response generation
+- User-friendly error messages via QMessageBox
+- Fallback responses for AI generation errors
+- Input validation for page numbers
