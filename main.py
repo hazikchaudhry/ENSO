@@ -442,7 +442,7 @@ class FeynmanChatbot(QMainWindow):
         self.chat_display.setStyleSheet("""
             QTextEdit {
                 border: none;
-                background-color: white;
+                background-color: #ffffff;
                 font-family: 'Segoe UI', Arial, sans-serif;
                 font-size: 14px;
                 line-height: 1.5;
@@ -450,13 +450,16 @@ class FeynmanChatbot(QMainWindow):
             QScrollBar:vertical {
                 border: none;
                 background: #f1f1f1;
-                width: 8px;
+                width: 10px;
                 margin: 0px;
             }
             QScrollBar::handle:vertical {
                 background: #c1c1c1;
                 min-height: 30px;
-                border-radius: 4px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #a8a8a8;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 border: none;
@@ -469,7 +472,7 @@ class FeynmanChatbot(QMainWindow):
         self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         
         # Set document margins for better text display
-        self.chat_display.document().setDocumentMargin(10)
+        self.chat_display.document().setDocumentMargin(0)
         
         chat_layout.addWidget(self.chat_display)
         
@@ -726,14 +729,14 @@ class FeynmanChatbot(QMainWindow):
         
         # Create HTML for user message with ChatGPT-like styling
         html = f"""
-        <div style="width: 100%; background-color: #f7f7f8; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
+        <div style="width: 100%; background-color: #f0f4ff; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
             <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
                 <div style="display: flex; align-items: flex-start;">
                     <div style="width: 30px; height: 30px; background-color: #5436DA; border-radius: 50%; 
                               display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
                         <span style="color: white; font-weight: bold;">U</span>
                     </div>
-                    <div style="flex-grow: 1;">
+                    <div style="flex-grow: 1; background-color: #e9ecff; padding: 10px 14px; border-radius: 12px;">
                         {text}
                     </div>
                 </div>
@@ -754,14 +757,14 @@ class FeynmanChatbot(QMainWindow):
         
         # Create HTML for AI message with ChatGPT-like styling
         html = f"""
-        <div style="width: 100%; background-color: white; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
+        <div style="width: 100%; background-color: #fafafa; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
             <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
                 <div style="display: flex; align-items: flex-start;">
                     <div style="width: 30px; height: 30px; background-color: #10a37f; border-radius: 50%; 
                               display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
                         <span style="color: white; font-weight: bold;">AI</span>
                     </div>
-                    <div style="flex-grow: 1;">
+                    <div style="flex-grow: 1; background-color: #f0f7f5; padding: 10px 14px; border-radius: 12px;">
                         {text}
                     </div>
                 </div>
@@ -783,14 +786,14 @@ class FeynmanChatbot(QMainWindow):
             
             # Create a new AI message container with ChatGPT-like styling
             html = """
-            <div style="width: 100%; background-color: white; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
+            <div style="width: 100%; background-color: #fafafa; padding: 12px 0; border-bottom: 1px solid #e5e5e5;">
                 <div style="max-width: 90%; margin: 0 auto; color: #343541; font-size: 14px;">
                     <div style="display: flex; align-items: flex-start;">
                         <div style="width: 30px; height: 30px; background-color: #10a37f; border-radius: 50%; 
                                   display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0;">
                             <span style="color: white; font-weight: bold;">AI</span>
                         </div>
-                        <div id="streaming_response" style="flex-grow: 1;">
+                        <div id="streaming_response" style="flex-grow: 1; background-color: #f0f7f5; padding: 10px 14px; border-radius: 12px;">
                         </div>
                     </div>
                 </div>
