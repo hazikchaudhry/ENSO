@@ -363,7 +363,7 @@ class FeynmanChatbot(QMainWindow):
         # Initialize Ollama model with streaming
         global llm_model
         llm_model = OllamaLLM(
-            model="mistral",
+            model="mistral:7b-instruct",
             temperature=0.7,
             streaming=True
         )
@@ -375,8 +375,8 @@ class FeynmanChatbot(QMainWindow):
         # Set up the main background gradient
         main_palette = self.palette()
         gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QColor('#FEFAE0'))
-        gradient.setColorAt(1, QColor('#E9EDC9'))
+        gradient.setColorAt(0, QColor('#588157'))
+        gradient.setColorAt(1, QColor('#344E41'))
         main_palette.setBrush(QPalette.ColorRole.Window, gradient)
         self.setPalette(main_palette)
         
@@ -391,7 +391,7 @@ class FeynmanChatbot(QMainWindow):
         header_layout = QHBoxLayout()
         title_label = QLabel("Enso")
         title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
-        title_label.setStyleSheet("color: #D4A373;")
+        title_label.setStyleSheet("color: #588157;")
         header_layout.addWidget(title_label)
         header_layout.addStretch()
         main_layout.addLayout(header_layout)
@@ -401,7 +401,7 @@ class FeynmanChatbot(QMainWindow):
         self.doc_tile.setObjectName("docTile")
         self.doc_tile.setStyleSheet("""
             #docTile {
-                background-color: #D4A373;
+                background-color: #588157;
                 border-radius: 15px;
                 border: none;
             }
@@ -421,11 +421,11 @@ class FeynmanChatbot(QMainWindow):
         self.upload_btn = QPushButton("Upload")
         self.upload_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FEFAE0;
+                background-color: #DAD7CD;
                 border-radius: 8px;
                 padding: 8px;
-                border: 1px solid #CCD5AE;
-                color: #D4A373;
+                border: 1px solid #344E41;
+                color: #588157;
             }
             QPushButton:hover {
                 background-color: #E9EDC9;
@@ -434,13 +434,13 @@ class FeynmanChatbot(QMainWindow):
         
         # Status label for progress updates
         self.status_label = QLabel()
-        self.status_label.setStyleSheet("color: #D4A373;")
+        self.status_label.setStyleSheet("color: #DAD7CD;")
         doc_tile_layout.addWidget(self.status_label)
         self.upload_btn.clicked.connect(self.upload_document)
         
         # Initialize model selector
         self.model_selector = QComboBox()
-        self.model_selector.addItems(["mistral"])
+        self.model_selector.addItems(["mistral:7b-instruct"])
         doc_controls_layout.addWidget(self.model_selector)
         
         # Initialize settings button
@@ -495,7 +495,7 @@ class FeynmanChatbot(QMainWindow):
         
         # Status label for progress updates
         self.status_label = QLabel()
-        self.status_label.setStyleSheet("color: #D4A373;")
+        self.status_label.setStyleSheet("color: #DAD7CD;")
         doc_tile_layout.addWidget(self.status_label)
         
         # Page range inputs styling
@@ -503,9 +503,9 @@ class FeynmanChatbot(QMainWindow):
             QLineEdit {
                 border-radius: 8px;
                 padding: 8px;
-                background-color: #FAEDCD;
-                border: 1px solid #CCD5AE;
-                color: #D4A373;
+                background-color: #DAD7CD;
+                border: 1px solid #344E41;
+                color: #588157;
             }
         """
         self.page_start.setStyleSheet(page_input_style)
@@ -516,9 +516,9 @@ class FeynmanChatbot(QMainWindow):
             QComboBox {
                 border-radius: 8px;
                 padding: 8px;
-                background-color: #FAEDCD;
-                border: 1px solid #CCD5AE;
-                color: #D4A373;
+                background-color: #DAD7CD;
+                border: 1px solid #344E41;
+                color: #588157;
                 min-width: 150px;
             }
             QComboBox::drop-down {
@@ -559,8 +559,8 @@ class FeynmanChatbot(QMainWindow):
         # Chat container styling
         chat_container.setStyleSheet("""
             #chatContainer {
-                background-color: #FEFAE0;
-                border: 1px solid #CCD5AE;
+                background-color: #DAD7CD;
+                border: 1px solid #344E41;
                 border-radius: 15px;
             }
         """)
@@ -574,7 +574,7 @@ class FeynmanChatbot(QMainWindow):
                 font-size: 14px;
                 line-height: 1.5;
                 padding: 10px;
-                color: #D4A373;
+                color: #0D1B2A;
             }
             QScrollBar:vertical {
                 background: #E9EDC9;
@@ -699,12 +699,12 @@ class FeynmanChatbot(QMainWindow):
         self.send_btn.setFixedSize(40, 40)
         self.send_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4a86e8;
+                background-color: #588157;
                 border-radius: 20px;
                 border: none;
             }
             QPushButton:hover {
-                background-color: #3a76d8;
+                background-color: #344E41;
             }
         """)
         self.send_btn.clicked.connect(self.process_user_response)
