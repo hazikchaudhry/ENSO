@@ -222,7 +222,7 @@ class ChatWorker(QThread):
                 related_concepts_prompt = f"\nRelated concepts to explore: {related}. {connection_prompt if complexity_level >= 2 else ''}{depth_prompt if complexity_level >= 3 else ''}"
             
             prompt = ChatPromptTemplate.from_messages([
-                ("system", """You are a friendly, curious learning companion using the Feynman Technique. Your goal is to have a natural, conversational exchange that guides the user to deeper understanding through thoughtful questions.
+                ("system", """You are a nonchalant, curious learning companion using the Feynman Technique. Your goal is to have a natural, conversational exchange that guides the user to deeper understanding through thoughtful questions.
 
 CURRENT STATE:
 Topic: {topic}
