@@ -93,6 +93,68 @@ class ChatWorker(QThread):
         self.conversation_history = conversation_history
         self.teaching_state = teaching_state
 
+    def _analyze_understanding(self, user_text: str, context: str) -> float:
+        """Let the AI assess understanding through natural conversation"""
+        # The understanding level will be determined by the AI model's assessment
+        # through the natural flow of conversation, considering:
+        # - Depth of explanations
+        # - Concept relationships
+        # - Contextual relevance
+        # - Response coherence
+        
+        # For now, maintain a moderate understanding level to allow
+        # the conversation to flow naturally
+        return 0.5
+
+    def _update_understanding_level(self, user_text: str, context: str):
+        """Update the understanding level based on user's response quality"""
+        current_level = self.teaching_state["understanding_level"]
+        understanding_score = self._analyze_understanding(user_text, context)
+        
+        # Gradual level adjustment
+        if understanding_score >= 0.8 and current_level < 3:
+            self.teaching_state["understanding_level"] = min(3, current_level + 1)
+        elif understanding_score <= 0.3 and current_level > 0:
+            self.teaching_state["understanding_level"] = max(0, current_level - 1)
+        elif 0.3 < understanding_score < 0.8:
+            # Maintain current level but track progress
+            self.teaching_state["progress_to_next"] = understanding_score
+
+    def _detect_misconceptions(self, user_text: str, context: str) -> list:
+        """Detect potential misconceptions in user's response by comparing with context"""
+        misconceptions = []
+        
+        # Convert to lowercase for case-insensitive comparison
+        user_text = user_text.lower()
+        context = context.lower()
+        
+        # Common misconception patterns
+        contradictions = [
+            ("always", "sometimes"),
+            ("never", "can"),
+            ("only", "also"),
+            ("all", "some")
+        ]
+        
+        # Check for direct contradictions
+        for word1, word2 in contradictions:
+            if word1 in user_text and word2 in context:
+                misconceptions.append(f"Potential oversimplification with '{word1}'")
+        
+        # Check for incorrect relationships
+        if "because" in user_text:
+            cause_effect = user_text.split("because")[1].strip()
+            if cause_effect and cause_effect not in context:
+                misconceptions.append("Potential incorrect cause-effect relationship")
+        
+        # Check for absolute statements
+        absolute_words = ["always", "never", "all", "none", "every", "only"]
+        for word in absolute_words:
+            if word in user_text and word not in context:
+                misconceptions.append(f"Potential overgeneralization with '{word}'")
+        
+        return misconceptions
+
     def run(self):
         try:
             # Format conversation history for better context
@@ -114,19 +176,64 @@ class ChatWorker(QThread):
             # Find relevant context from vectorstore
             relevant_context = self.context if self.context else ""
             
+            # Update understanding level based on user's response
+            self._update_understanding_level(user_concepts, relevant_context)
+            
+            # Adjust question complexity based on teaching state and user understanding
+            state = self.teaching_state
+            question_style = "basic"
+            
+            # Calculate complexity level based on conversation length and understanding
+            complexity_level = min(3, len(self.conversation_history) // 4 + state["understanding_level"])
+            
+            # Only check for misconceptions if this isn't the first interaction
+            misconception_detected = False
+            hint_prompt = ""
+            
+            if len(self.conversation_history) > 2:  # At least one full exchange has occurred
+                if state["understanding_level"] > 0:
+                    # Simple keyword-based misconception detection
+                    misconceptions = self._detect_misconceptions(user_concepts, relevant_context)
+                    if misconceptions:
+                        question_style = "socratic"
+                        misconception_detected = True
+                        hint_prompt = "\nGently guide the user to discover any potential misunderstandings through questions."
+            
+            # Choose question style based on conversation progress and complexity
+            if not misconception_detected:
+                if complexity_level == 0:
+                    question_style = "basic"  # Start with foundational questions
+                elif complexity_level == 1:
+                    styles = ["basic", "comparison", "metaphor"]
+                    question_style = random.choice(styles)
+                elif complexity_level == 2:
+                    styles = ["comparison", "scenario", "metaphor", "socratic"]
+                    question_style = random.choice(styles)
+                else:
+                    styles = ["socratic", "scenario", "metaphor"]
+                    question_style = random.choice(styles)
+            
+            # Include related concepts for deeper exploration
+            related_concepts_prompt = ""
+            if state.get("related_concepts"):
+                related = ", ".join(state["related_concepts"][:3])
+                connection_prompt = "\nExplore connections between these concepts and identify patterns or relationships. "
+                depth_prompt = "\nConsider how these concepts build upon or influence each other. "
+                related_concepts_prompt = f"\nRelated concepts to explore: {related}. {connection_prompt if complexity_level >= 2 else ''}{depth_prompt if complexity_level >= 3 else ''}"
+            
             prompt = ChatPromptTemplate.from_messages([
                 ("system", """You are a friendly, curious learning companion using the Feynman Technique. Your goal is to have a natural, conversational exchange that guides the user to deeper understanding through thoughtful questions.
 
 CURRENT STATE:
 Topic: {topic}
-Understanding: Level {understanding} (0: unclear → 3: excellent)
-Depth: Level {depth} (0: basics → 2: advanced)
+Understanding: Level {understanding} (0: unclear -> 3: excellent)
+Depth: Level {depth} (0: basics -> 2: advanced)
 
 CONVERSATION HISTORY:
 {history}
 
 CONTEXT (Use to inform questions, never teach directly):
-{context}
+{context}{related_concepts_prompt}
 
 YOUR APPROACH:
 1. Be Conversational & Human-like:
@@ -173,7 +280,7 @@ YOUR APPROACH:
    - Add human touches (e.g., "That's interesting!")
    - NO long explanations
    - NO multiple questions at once
-   - NO teaching or correcting
+   - DO correct a statement if it is false, explain why if it's false
    - NEVER use "AI:" prefix in your responses
 
 EXAMPLE FLOW:
@@ -195,7 +302,7 @@ Choose ONE aspect to explore deeper. Respond with a single, focused question tha
 3. Helps them explain the concept better
 4. Feels natural and conversational
 
-Occasionally (about 30% of the time), use one of these techniques to make your question more engaging:
+Occasionally (about 1/3 of the time), use one of these techniques to make your question more engaging:
 - Frame your question using a metaphor or analogy
 - Ask them to rank or compare concepts
 - Present a hypothetical scenario
@@ -217,7 +324,9 @@ Remember to keep it conversational and focused on ONE thing at a time.""")
                 "history": formatted_history,
                 "topic": self.teaching_state["current_topic"] or "not set",
                 "understanding": self.teaching_state["understanding_level"],
-                "depth": self.teaching_state["depth_level"]
+                "depth": self.teaching_state["depth_level"],
+                "question_style": question_style,
+                "related_concepts_prompt": related_concepts_prompt
             }):
                 full_response += chunk
                 self.token_received.emit(chunk)
@@ -331,7 +440,7 @@ class FeynmanChatbot(QMainWindow):
         
         # Initialize model selector
         self.model_selector = QComboBox()
-        self.model_selector.addItems(["mistral", "deepseek-r1:7b", "llama2"])
+        self.model_selector.addItems(["mistral"])
         doc_controls_layout.addWidget(self.model_selector)
         
         # Initialize settings button
@@ -811,6 +920,106 @@ class FeynmanChatbot(QMainWindow):
         )
         self.last_ai_message_pos = self.chat_display.textCursor().position()
 
+    def _analyze_understanding(self, user_text: str, context: str) -> float:
+        """Analyze user's understanding level based on response quality"""
+        score = 0.0
+        
+        # Check for key concept usage
+        context_keywords = set(context.lower().split())
+        user_keywords = set(user_text.lower().split())
+        concept_overlap = len(context_keywords.intersection(user_keywords)) / max(1, len(context_keywords))
+        score += concept_overlap * 0.5  # Max 0.5 points for concept usage
+        
+        # Check for explanation quality
+        if len(user_text.split()) >= 15:  # Reasonable explanation length
+            score += 0.3
+        if "because" in user_text.lower() or "therefore" in user_text.lower():  # Causal reasoning
+            score += 0.4
+        if "for example" in user_text.lower() or "like" in user_text.lower():  # Uses examples
+            score += 0.4
+        
+        # Penalize for misconceptions
+        misconceptions = self._detect_misconceptions(user_text, context)
+        score = max(0.0, score - (len(misconceptions) * 0.3))
+        
+        return min(1.0, score)  # Normalize to 0-1 range
+
+    def _update_understanding_level(self, user_text: str, context: str):
+        """Update the understanding level based on user's response quality"""
+        current_level = self.teaching_state["understanding_level"]
+        understanding_score = self._analyze_understanding(user_text, context)
+        
+        # Gradual level adjustment
+        if understanding_score >= 0.8 and current_level < 3:
+            self.teaching_state["understanding_level"] = min(3, current_level + 1)
+        elif understanding_score <= 0.3 and current_level > 0:
+            self.teaching_state["understanding_level"] = max(0, current_level - 1)
+        elif 0.3 < understanding_score < 0.8:
+            # Maintain current level but track progress
+            self.teaching_state["progress_to_next"] = understanding_score
+
+    def _analyze_understanding(self, user_text: str, context: str) -> float:
+        """Let the AI assess understanding through natural conversation"""
+        # The understanding level will be determined by the AI model's assessment
+        # through the natural flow of conversation, considering:
+        # - Depth of explanations
+        # - Concept relationships
+        # - Contextual relevance
+        # - Response coherence
+        
+        # For now, maintain a moderate understanding level to allow
+        # the conversation to flow naturally
+        return 0.5
+
+    def _update_understanding_level(self, user_text: str, context: str):
+        """Update the understanding level based on user's response quality"""
+        current_level = self.teaching_state["understanding_level"]
+        understanding_score = self._analyze_understanding(user_text, context)
+        
+        # Gradual level adjustment
+        if understanding_score >= 0.8 and current_level < 3:
+            self.teaching_state["understanding_level"] = min(3, current_level + 1)
+        elif understanding_score <= 0.3 and current_level > 0:
+            self.teaching_state["understanding_level"] = max(0, current_level - 1)
+        elif 0.3 < understanding_score < 0.8:
+            # Maintain current level but track progress
+            self.teaching_state["progress_to_next"] = understanding_score
+
+    def _detect_misconceptions(self, user_text: str, context: str) -> list:
+        """Detect potential misconceptions in user's response by comparing with context"""
+        misconceptions = []
+        
+        # Convert to lowercase for case-insensitive comparison
+        user_text = user_text.lower()
+        context = context.lower()
+        
+        # Common misconception patterns
+        contradictions = [
+            ("always", "sometimes"),
+            ("never", "can"),
+            ("only", "also"),
+            ("all", "some")
+        ]
+        
+        # Check for direct contradictions
+        for word1, word2 in contradictions:
+            if word1 in user_text and word2 in context:
+                misconceptions.append(f"Potential oversimplification with '{word1}'")
+        
+        # Check for incorrect relationships
+        if "because" in user_text:
+            cause_effect = user_text.split("because")[1].strip()
+            if cause_effect and cause_effect not in context:
+                misconceptions.append("Potential incorrect cause-effect relationship")
+        
+        # Check for absolute statements
+        absolute_words = ["always", "never", "all", "none", "every", "only"]
+        for word in absolute_words:
+            if word in user_text and word not in context:
+                misconceptions.append(f"Potential overgeneralization with '{word}'")
+        
+        return misconceptions
+
     def _handle_response_finished(self, full_response: str):
         """Handle when the chat response is complete"""
         # Clear the current response buffer
@@ -835,28 +1044,51 @@ class FeynmanChatbot(QMainWindow):
 
     def _update_conversation_state(self, user_text):
         """Update conversation state based on user's response"""
-        # Simple state tracking for conversation
+        # Track conversation progression
         if self.conversation_state == "introduction":
+            self.conversation_state = "basic_understanding"
+        elif self.conversation_state == "basic_understanding" and len(self.conversation_history) >= 6:
             self.conversation_state = "exploring"
+        elif self.conversation_state == "exploring" and len(self.conversation_history) >= 12:
+            self.conversation_state = "connecting_concepts"
             
         # Extract potential topics from user text
         text_lower = user_text.lower()
         key_concepts = ["neural network", "transformer", "attention", "encoder", "decoder", "layer"]
+        related_concepts = {
+            "neural network": ["layer", "input", "output"],
+            "transformer": ["attention", "encoder", "decoder"],
+            "attention": ["encoder", "decoder", "weights"],
+            "encoder": ["input", "representation"],
+            "decoder": ["output", "prediction"],
+            "layer": ["neural network", "transformation"]
+        }
+        
+        # Update current concept and track related ones
         for concept in key_concepts:
             if concept in text_lower:
-                # Just update the current topic, no complex state object
                 self.last_concept = concept
+                # Store related concepts for future exploration
+                if concept in related_concepts:
+                    self.related_concepts = related_concepts[concept]
                 break
 
     def _get_teaching_state(self):
         """Determine teaching state based on conversation state"""
-        # Simple teaching state mapping
-        if self.conversation_state == "introduction":
-            return "introduction"
-        elif self.conversation_state == "exploring":
-            return "exploring"
-        else:
-            return "challenge_understanding"
+        states = {
+            "introduction": {"understanding_level": 0, "depth_level": 0},
+            "basic_understanding": {"understanding_level": 1, "depth_level": 0},
+            "exploring": {"understanding_level": 2, "depth_level": 1},
+            "connecting_concepts": {"understanding_level": 3, "depth_level": 2}
+        }
+        
+        current_state = states.get(self.conversation_state, states["introduction"])
+        return {
+            "current_topic": self.last_concept,
+            "understanding_level": current_state["understanding_level"],
+            "depth_level": current_state["depth_level"],
+            "related_concepts": getattr(self, 'related_concepts', [])
+        }
 
     # Add text formatting methods
     def apply_bold(self):
