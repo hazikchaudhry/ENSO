@@ -336,11 +336,11 @@ Remember to keep it conversational and focused on ONE thing at a time.""")
             self.token_received.emit(f"\nError: {str(e)}")
             self.finished.emit("")
 
-class FeynmanChatbot(QMainWindow):
-    """Main application window for the Feynman Chatbot"""
+class Enso(QMainWindow):
+    """Main application window for the Enso application"""
     
     def __init__(self):
-        """Initialize the Feynman Chatbot application"""
+        """Initialize the Enso application"""
         super().__init__()
         
         # Initialize attributes
@@ -376,6 +376,7 @@ class FeynmanChatbot(QMainWindow):
         main_palette = self.palette()
         gradient = QLinearGradient(0, 0, 0, self.height())
         gradient.setColorAt(0, QColor('#588157'))
+        gradient.setColorAt(0.5, QColor('#3A5A40'))
         gradient.setColorAt(1, QColor('#344E41'))
         main_palette.setBrush(QPalette.ColorRole.Window, gradient)
         self.setPalette(main_palette)
@@ -391,7 +392,7 @@ class FeynmanChatbot(QMainWindow):
         header_layout = QHBoxLayout()
         title_label = QLabel("Enso")
         title_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
-        title_label.setStyleSheet("color: #588157;")
+        title_label.setStyleSheet("color: #5006D77;")
         header_layout.addWidget(title_label)
         header_layout.addStretch()
         main_layout.addLayout(header_layout)
@@ -401,7 +402,7 @@ class FeynmanChatbot(QMainWindow):
         self.doc_tile.setObjectName("docTile")
         self.doc_tile.setStyleSheet("""
             #docTile {
-                background-color: #588157;
+                background: #344E41;
                 border-radius: 15px;
                 border: none;
             }
@@ -413,6 +414,33 @@ class FeynmanChatbot(QMainWindow):
         tile_header.setFont(QFont("Arial", 16, ))
         tile_header.setStyleSheet("color: white;")
         doc_tile_layout.addWidget(tile_header)
+        
+        # Add informative text
+        info_layout = QHBoxLayout()
+        
+        # Requirements section
+        requirements_text = QLabel(
+            "Requirements:\n" 
+            "• Ollama must be running locally\n"
+            "• Supports PDF, DOCX, and TXT files"
+        )
+        requirements_text.setWordWrap(True)
+        requirements_text.setStyleSheet("color: #DAD7CD; font-size: 17px; margin: 3px 0;")
+        info_layout.addWidget(requirements_text)
+        
+        # How it works section
+        workflow_text = QLabel(
+            "How it works:\n"
+            "1. Select document & page range\n"
+            "2. Choose AI model\n"
+            "3. Process text & create embeddings\n"
+            "4. Start interactive learning"
+        )
+        workflow_text.setWordWrap(True)
+        workflow_text.setStyleSheet("color: #DAD7CD; font-size: 15px; margin: 4px 0;")
+        info_layout.addWidget(workflow_text)
+        
+        doc_tile_layout.addLayout(info_layout)
         
         # Document selection controls
         doc_controls_layout = QHBoxLayout()
@@ -443,11 +471,6 @@ class FeynmanChatbot(QMainWindow):
         self.model_selector.addItems(["mistral:7b-instruct"])
         doc_controls_layout.addWidget(self.model_selector)
         
-        # Initialize settings button
-        self.settings_btn = QPushButton()
-        self.settings_btn.setIcon(QIcon("/Users/hazikchaudhry/Documents/new feyman/icons/Setting_line.png"))
-        self.settings_btn.setIconSize(QSize(24, 24))
-        doc_controls_layout.addWidget(self.settings_btn)
         
         # Initialize progress bar
         self.progress_bar = QProgressBar()
@@ -530,17 +553,6 @@ class FeynmanChatbot(QMainWindow):
             }
         """)
         
-        # Settings button styling
-        self.settings_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #FAEDCD;
-                border-radius: 20px;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #FEFAE0;
-            }
-        """)
         
         # Progress bar styling
         self.progress_bar.setStyleSheet("""
@@ -559,7 +571,9 @@ class FeynmanChatbot(QMainWindow):
         # Chat container styling
         chat_container.setStyleSheet("""
             #chatContainer {
-                background-color: #DAD7CD;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #E9EDC9,
+                    stop:1 #DAD7CD);
                 border: 1px solid #344E41;
                 border-radius: 15px;
             }
@@ -606,7 +620,9 @@ class FeynmanChatbot(QMainWindow):
         input_frame = QFrame()
         input_frame.setStyleSheet("""
             QFrame {
-                background-color: #FAEDCD;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #FEFAE0,
+                    stop:1 #FAEDCD);
                 border-radius: 10px;
                 border: 1px solid #CCD5AE;
                 margin: 10px;
@@ -699,7 +715,9 @@ class FeynmanChatbot(QMainWindow):
         self.send_btn.setFixedSize(40, 40)
         self.send_btn.setStyleSheet("""
             QPushButton {
-                background-color: #588157;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #588157,
+                    stop:1 #3A5A40);
                 border-radius: 20px;
                 border: none;
             }
@@ -890,7 +908,7 @@ class FeynmanChatbot(QMainWindow):
                 self.chat_display.insertPlainText("\n")
             
             # Insert AI message with consistent formatting
-            message = f"AI: {text}\n"
+            message = f"ENSO: {text}\n"
             self.chat_display.insertPlainText(message)
             
             # Store position and ensure visibility
@@ -909,7 +927,7 @@ class FeynmanChatbot(QMainWindow):
             if cursor.position() > 0:
                 self.chat_display.insertPlainText("\n")
             
-            self.chat_display.insertPlainText("AI: ")
+            self.chat_display.insertPlainText("ENSO: ")
         
         self.current_ai_response += token
         self.chat_display.insertPlainText(token)
@@ -1132,7 +1150,12 @@ class FeynmanChatbot(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = FeynmanChatbot()
+
+    # Set application icon
+    app_icon = QIcon("./icons/logo.png")
+    app.setWindowIcon(app_icon)
+
+    window = Enso()
     window.show()
     sys.exit(app.exec())
 
