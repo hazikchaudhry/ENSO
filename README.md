@@ -20,7 +20,7 @@ Enso is a modern PyQt6 application that implements an AI-powered learning compan
 pip install -r requirements.txt
 ```
 
-2. Install Ollama and download the Mistral model:
+2. Install Ollama on Windows at https://ollama.com/ and download the Mistral model:
 ```bash
 # Install Ollama (Mac/Linux)
 curl https://ollama.ai/install.sh | sh
