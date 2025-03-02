@@ -22,9 +22,6 @@ pip install -r requirements.txt
 
 2. Install Ollama on Windows at https://ollama.com/ and download the Mistral model:
 ```bash
-# Install Ollama (Mac/Linux)
-curl https://ollama.ai/install.sh | sh
-
 # Pull required model
 ollama pull mistral:7b-instruct
 ```
