@@ -1,16 +1,17 @@
-# AI-Powered Learning Assistant
+# Enso - AI-Powered Learning Assistant
 
-A modern PyQt6 application that uses the Feynman Technique and RAG (Retrieval-Augmented Generation) to create an interactive learning experience. The AI guides users through topics using Socratic dialogue, helping them achieve deeper understanding through progressive questioning.
+Enso is a modern PyQt6 application that implements an AI-powered learning companion using the Feynman Technique. The application processes documents using natural language processing and engages users in a conversational learning experience guided by an AI model.
 
 ## Features
 
-- 🎨 Modern gradient UI with smooth transitions
+- 🎨 Modern gradient UI with smooth transitions and ChatGPT-like interface
 - 📚 Support for PDF, DOCX, and TXT documents
 - 📑 Page range selection for focused learning
-- 🤖 Multiple AI model options (deepseek-r1:7b, mistral, llama2, codellama)
-- 💡 Intelligent RAG-powered responses
+- 🤖 Mistral 7B model integration for intelligent responses
+- 💡 RAG-powered context retrieval using FAISS
 - 🎯 Socratic teaching method with progressive hints
-- 💬 Rich text formatting in chat
+- 💬 Rich text formatting with bold, italic, and bullet points
+- ⚡ Real-time token streaming for dynamic responses
 
 ## Setup
 
@@ -19,14 +20,13 @@ A modern PyQt6 application that uses the Feynman Technique and RAG (Retrieval-Au
 pip install -r requirements.txt
 ```
 
-2. Install Ollama and download required models:
+2. Install Ollama and download the Mistral model:
 ```bash
 # Install Ollama (Mac/Linux)
 curl https://ollama.ai/install.sh | sh
 
-# Pull required models
-ollama pull deepseek-r1:7b
-ollama pull mistral
+# Pull required model
+ollama pull mistral:7b-instruct
 ```
 
 3. Run the application:
@@ -39,22 +39,34 @@ python main.py
 1. Launch the application
 2. Click "Upload Document" to select your learning material (PDF/DOCX/TXT)
 3. Select the page range you want to focus on
-4. Choose your preferred AI model
-5. Click "Start Learning" to begin
-6. Engage in a Socratic dialogue with the AI to deepen your understanding
+4. Verify Ollama is running locally
+5. Start your learning journey with the AI companion
 
-## How It Works
+## Technical Architecture
 
-The application uses:
-- FAISS for efficient vector similarity search
-- LangChain for RAG implementation
-- Ollama for local LLM inference
-- PyQt6 for the modern UI
-- Document processing libraries for text extraction
+The application leverages several key technologies:
 
-The AI follows the Feynman Technique principles:
-1. Asks you to explain concepts in your own words
-2. Identifies gaps in understanding
-3. Provides progressive hints rather than direct answers
-4. Encourages connections between concepts
-5. Uses analogies and real-world examples
+- **Document Processing**: PyMuPDF (fitz) and python-docx for text extraction
+- **AI/ML Components**: 
+  - LangChain for orchestrating AI workflows
+  - Ollama for local LLM inference
+  - HuggingFace embeddings for text vectorization
+  - FAISS for efficient vector similarity search
+- **UI Framework**: PyQt6 with modern gradient styling
+
+## Learning Approach
+
+Enso implements the Feynman Technique through:
+1. Engaging users in natural dialogue about concepts
+2. Identifying knowledge gaps through Socratic questioning
+3. Providing progressive hints rather than direct answers
+4. Using analogies and real-world examples
+5. Encouraging users to explain concepts in their own words
+
+## Features in Detail
+
+- **Smart Context Retrieval**: Uses FAISS similarity search to find relevant context
+- **Real-time Responses**: Streams tokens for dynamic response generation
+- **Rich Text Support**: Format your messages with bold, italic, and bullet points
+- **Conversation Management**: Tracks conversation state and maintains context
+- **Error Handling**: Robust error management with user-friendly messages
