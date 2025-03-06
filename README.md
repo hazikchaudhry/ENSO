@@ -1,6 +1,6 @@
 # Enso - AI-Powered Learning Assistant
 
-Enso is a modern PyQt6 application that implements an AI-powered learning companion using the Feynman Technique. The application processes documents using natural language processing and engages users in a conversational learning experience guided by an AI model.
+Enso is a modern PyQt6 application that implements an Local LLM-powered learning companion using the Feynman Technique. The application processes documents using natural language processing and engages users in a conversational learning experience guided by an AI model.
 
 ## Features
 
