@@ -12,14 +12,23 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.callbacks.base import BaseCallbackHandler
 import os
 import sys
-import fitz  # PyMuPDF for PDF processing
-from docx import Document  # python-docx for DOCX processing
+import fitz  
+from docx import Document  
 import time
 import random
 
 class ProcessingThread(QThread):
+
+
     finished = pyqtSignal(bool, str)
+
+
+
     progress = pyqtSignal(str)
+
+
+
+
 
     def __init__(self, file_path, start_page, end_page, model_name):
         super().__init__()
@@ -33,9 +42,11 @@ class ProcessingThread(QThread):
     def run(self):
         try:
             self.progress.emit("Extracting text from document...")
-            # Extract text based on file type
+           
             if self.file_path.endswith('.pdf'):
+
                 text = self.process_pdf()
+                
             elif self.file_path.endswith('.docx'):
                 text = self.process_docx()
             elif self.file_path.endswith('.txt'):
@@ -880,7 +891,7 @@ class Enso(QMainWindow):
         if cursor.position() > 0:
             self.chat_display.insertPlainText("\n")
         
-        # Insert user message with consistent formatting
+
         message = f"User: {text}\n"
         self.chat_display.insertPlainText(message)
         
@@ -1057,7 +1068,7 @@ class Enso(QMainWindow):
         # Re-enable input box
         self.user_input.setEnabled(True)
         
-        # Set focus back to the input box for immediate typing
+        #\
         self.user_input.setFocus()
 
     def _update_conversation_state(self, user_text):
