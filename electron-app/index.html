@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enso - AI Learning Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1>Enso</h1>
+    </header>
+    
+    <!-- Document Upload Section -->
+    <section id="document-section" class="tile">
+      <h2>Upload Document</h2>
+      
+      <div class="info-container">
+        <div class="requirements">
+          <h3>Requirements:</h3>
+          <ul>
+            <li>Ollama must be running locally</li>
+            <li>Supports PDF, DOCX, and TXT files</li>
+          </ul>
+        </div>
+        
+        <div class="workflow">
+          <h3>How it works:</h3>
+          <ol>
+            <li>Select document & page range</li>
+            <li>Choose AI model</li>
+            <li>Process text & create embeddings</li>
+            <li>Start interactive learning</li>
+          </ol>
+        </div>
+      </div>
+      
+      <div class="status-message" id="status-message"></div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      
+      <div class="controls">
+        <select id="model-selector" class="input-field">
+          <option value="mistral:7b-instruct">mistral:7b-instruct</option>
+        </select>
+        
+        <input type="text" id="page-start" class="input-field" placeholder="Start Page">
+        <input type="text" id="page-end" class="input-field" placeholder="End Page">
+        
+        <button id="upload-btn" class="btn">Upload</button>
+      </div>
+    </section>
+    
+    <!-- Chat Section -->
+    <section id="chat-section" class="chat-container">
+      <div class="chat-display" id="chat-display"></div>
+      
+      <div class="input-container">
+        <div class="toolbar">
+          <button id="bold-btn" class="format-btn">B</button>
+          <button id="italic-btn" class="format-btn">I</button>
+          <button id="bullet-btn" class="format-btn">•</button>
+        </div>
+        
+        <textarea id="user-input" placeholder="What's in your mind?..." disabled></textarea>
+        
+        <div class="send-container">
+          <button id="send-btn" class="send-btn" disabled>
+            <img src="assets/icons/Arrow_right.png" alt="Send">
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>

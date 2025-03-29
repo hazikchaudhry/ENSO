@@ -1,0 +1,26 @@
+{
+  "name": "enso-electron",
+  "version": "1.0.0",
+  "description": "Electron frontend for Enso AI-Powered Learning Assistant",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start-backend": "cd backend && python server.py",
+    "dev": "concurrently \"npm run start-backend\" \"npm run start\""
+  },
+  "keywords": [
+    "electron",
+    "enso",
+    "learning",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "electron": "^25.3.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  }
+}

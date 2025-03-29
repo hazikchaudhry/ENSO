@@ -1,0 +1,270 @@
+/* Main Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #588157, #3A5A40, #344E41);
+  color: #DAD7CD;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #DAD7CD;
+  margin: 0;
+}
+
+/* Document Upload Tile */
+.tile {
+  background-color: #344E41;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 15px;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+}
+
+.tile h2 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.info-container {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.requirements, .workflow {
+  flex: 1;
+}
+
+.requirements h3, .workflow h3 {
+  font-size: 15px;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.requirements ul, .workflow ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #DAD7CD;
+}
+
+.status-message {
+  color: #DAD7CD;
+  margin-bottom: 10px;
+  min-height: 20px;
+}
+
+.progress-container {
+  height: 10px;
+  background-color: #FAEDCD;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  display: none;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0;
+  background-color: #D4A373;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.input-field {
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #DAD7CD;
+  border: 1px solid #344E41;
+  color: #588157;
+  flex: 1;
+}
+
+.btn {
+  background-color: #DAD7CD;
+  border-radius: 8px;
+  padding: 8px 16px;
+  border: 1px solid #344E41;
+  color: #588157;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: #E9EDC9;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Chat Container */
+.chat-container {
+  background: linear-gradient(to bottom, #E9EDC9, #DAD7CD);
+  border: 1px solid #344E41;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.chat-display {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background-color: #FEFAE0;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0D1B2A;
+}
+
+.chat-display::-webkit-scrollbar {
+  width: 12px;
+  background: #E9EDC9;
+  border-radius: 6px;
+}
+
+.chat-display::-webkit-scrollbar-thumb {
+  background: #CCD5AE;
+  border-radius: 6px;
+  min-height: 20px;
+}
+
+.message {
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+
+.user-message {
+  color: #344E41;
+}
+
+.ai-message {
+  color: #588157;
+}
+
+/* Input Container */
+.input-container {
+  background: linear-gradient(to bottom, #FEFAE0, #FAEDCD);
+  border-radius: 10px;
+  border: 1px solid #CCD5AE;
+  margin: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 5px;
+}
+
+.format-btn {
+  width: 30px;
+  height: 30px;
+  background-color: #FEFAE0;
+  border-radius: 5px;
+  border: 1px solid #CCD5AE;
+  color: #D4A373;
+  margin-left: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.format-btn:hover {
+  background-color: #E9EDC9;
+}
+
+#bold-btn {
+  font-weight: bold;
+}
+
+#italic-btn {
+  font-style: italic;
+}
+
+textarea {
+  border: none;
+  background-color: transparent;
+  padding: 8px;
+  font-size: 14px;
+  color: black;
+  min-height: 60px;
+  max-height: 120px;
+  resize: none;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.send-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.send-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(to bottom, #588157, #3A5A40);
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn:hover {
+  background-color: #344E41;
+}
+
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.send-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hidden state */
+.hidden {
+  display: none;
+}

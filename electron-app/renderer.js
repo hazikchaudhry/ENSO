@@ -1,0 +1,262 @@
+// Renderer process script for Enso Electron app
+
+// DOM Elements
+const uploadBtn = document.getElementById('upload-btn');
+const modelSelector = document.getElementById('model-selector');
+const pageStart = document.getElementById('page-start');
+const pageEnd = document.getElementById('page-end');
+const statusMessage = document.getElementById('status-message');
+const progressContainer = document.querySelector('.progress-container');
+const progressBar = document.getElementById('progress-bar');
+const documentSection = document.getElementById('document-section');
+const chatDisplay = document.getElementById('chat-display');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const boldBtn = document.getElementById('bold-btn');
+const italicBtn = document.getElementById('italic-btn');
+const bulletBtn = document.getElementById('bullet-btn');
+
+// State variables
+let documentProcessed = false;
+let statusCheckInterval = null;
+let conversationHistory = [];
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Upload button click handler
+  uploadBtn.addEventListener('click', handleUpload);
+  
+  // Send button click handler
+  sendBtn.addEventListener('click', handleSendMessage);
+  
+  // Enter key in textarea
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  });
+  
+  // Text formatting buttons
+  boldBtn.addEventListener('click', () => applyFormatting('**', '**'));
+  italicBtn.addEventListener('click', () => applyFormatting('*', '*'));
+  bulletBtn.addEventListener('click', () => addBulletPoint());
+});
+
+// Handle document upload
+async function handleUpload() {
+  try {
+    // Open file dialog
+    const filePath = await window.electronAPI.openFile();
+    
+    if (!filePath) return; // User canceled
+    
+    // Get page range
+    const startPage = pageStart.value ? parseInt(pageStart.value) : 1;
+    const endPage = pageEnd.value ? parseInt(pageEnd.value) : null;
+    
+    // Disable UI during processing
+    uploadBtn.disabled = true;
+    userInput.disabled = true;
+    sendBtn.disabled = true;
+    
+    // Show progress bar
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    statusMessage.textContent = 'Starting document processing...';
+    
+    // Send request to backend
+    await window.electronAPI.backend.processDocument(
+      filePath,
+      startPage,
+      endPage,
+      modelSelector.value
+    );
+    
+    // Start polling for status
+    startStatusPolling();
+    
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    statusMessage.textContent = `Error: ${error.message}`;
+    uploadBtn.disabled = false;
+  }
+}
+
+// Poll backend for processing status
+function startStatusPolling() {
+  // Clear any existing interval
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
+  }
+  
+  statusCheckInterval = setInterval(async () => {
+    try {
+      const status = await window.electronAPI.backend.getStatus();
+      
+      // Update status message
+      statusMessage.textContent = status.message;
+      
+      // Update progress bar
+      if (status.progress > 0) {
+        progressBar.style.width = `${status.progress}%`;
+      }
+      
+      // Check if processing is complete or has error
+      if (status.status === 'complete') {
+        clearInterval(statusCheckInterval);
+        progressContainer.style.display = 'none';
+        uploadBtn.disabled = false;
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        documentProcessed = true;
+        
+        // Hide document section
+        documentSection.classList.add('hidden');
+        
+        // Display initial greeting
+        appendAIMessage("Hey there! 👋 I'm excited to explore this document with you! Think of me as your curious learning buddy - we're like detectives looking for interesting clues in the text. What caught your eye? Even a simple word or idea is perfect to start our investigation! 🔍");
+        
+        // Focus on input
+        userInput.focus();
+      } else if (status.status === 'error') {
+        clearInterval(statusCheckInterval);
+        progressContainer.style.display = 'none';
+        uploadBtn.disabled = false;
+        statusMessage.textContent = `Error: ${status.message}`;
+      }
+      
+    } catch (error) {
+      console.error('Error checking status:', error);
+      clearInterval(statusCheckInterval);
+      statusMessage.textContent = `Error checking status: ${error.message}`;
+      uploadBtn.disabled = false;
+    }
+  }, 1000); // Check every second
+}
+
+// Handle sending a message
+async function handleSendMessage() {
+  const message = userInput.value.trim();
+  if (!message) return;
+  
+  // Clear input and disable until response is complete
+  userInput.value = '';
+  userInput.disabled = true;
+  sendBtn.disabled = true;
+  
+  // Display user message
+  appendUserMessage(message);
+  
+  try {
+    // Send message to backend
+    const response = await window.electronAPI.backend.sendMessage(message);
+    
+    // Handle streaming response
+    if (response.tokens && response.tokens.length > 0) {
+      // Start a new AI message
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message ai-message';
+      messageElement.textContent = 'ENSO: ';
+      chatDisplay.appendChild(messageElement);
+      
+      // Stream tokens
+      for (const token of response.tokens) {
+        messageElement.textContent += token;
+        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        await new Promise(resolve => setTimeout(resolve, 10)); // Small delay for visual effect
+      }
+      
+      // Add newline
+      messageElement.textContent += '\n';
+    } else {
+      // Fallback to non-streaming response
+      appendAIMessage(response.response);
+    }
+    
+  } catch (error) {
+    console.error('Error sending message:', error);
+    appendAIMessage("Hmm, I didn't quite catch that. Could you try saying that in a different way? 🤔");
+  } finally {
+    // Re-enable input
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    userInput.focus();
+  }
+}
+
+// Append a user message to the chat display
+function appendUserMessage(text) {
+  // Add to conversation history
+  conversationHistory.push(text);
+  
+  // Create message element
+  const messageElement = document.createElement('div');
+  messageElement.className = 'message user-message';
+  messageElement.textContent = `User: ${text}\n`;
+  
+  // Add to chat display
+  chatDisplay.appendChild(messageElement);
+  
+  // Scroll to bottom
+  chatDisplay.scrollTop = chatDisplay.scrollHeight;
+}
+
+// Append an AI message to the chat display
+function appendAIMessage(text) {
+  // Add to conversation history
+  conversationHistory.push(text);
+  
+  // Create message element
+  const messageElement = document.createElement('div');
+  messageElement.className = 'message ai-message';
+  messageElement.textContent = `ENSO: ${text}\n`;
+  
+  // Add to chat display
+  chatDisplay.appendChild(messageElement);
+  
+  // Scroll to bottom
+  chatDisplay.scrollTop = chatDisplay.scrollHeight;
+}
+
+// Text formatting functions
+function applyFormatting(prefix, suffix) {
+  const start = userInput.selectionStart;
+  const end = userInput.selectionEnd;
+  const text = userInput.value;
+  
+  if (start === end) {
+    // No selection, insert formatting markers and place cursor between them
+    const newText = text.substring(0, start) + prefix + suffix + text.substring(end);
+    userInput.value = newText;
+    userInput.selectionStart = start + prefix.length;
+    userInput.selectionEnd = start + prefix.length;
+  } else {
+    // Apply formatting to selection
+    const selectedText = text.substring(start, end);
+    const newText = text.substring(0, start) + prefix + selectedText + suffix + text.substring(end);
+    userInput.value = newText;
+    userInput.selectionStart = start + prefix.length;
+    userInput.selectionEnd = end + prefix.length;
+  }
+  
+  userInput.focus();
+}
+
+function addBulletPoint() {
+  const start = userInput.selectionStart;
+  const text = userInput.value;
+  
+  // Find the start of the current line
+  let lineStart = start;
+  while (lineStart > 0 && text[lineStart - 1] !== '\n') {
+    lineStart--;
+  }
+  
+  // Insert bullet point at the start of the line
+  const newText = text.substring(0, lineStart) + '• ' + text.substring(lineStart);
+  userInput.value = newText;
+  userInput.selectionStart = start + 2;
+  userInput.selectionEnd = start + 2;
+  userInput.focus();
+}
