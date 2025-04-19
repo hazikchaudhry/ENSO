@@ -2,15 +2,17 @@ const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const portfinder = require('portfinder');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
 
 // Keep a reference to the Python backend process
 let backendProcess = null;
+let backendPort = 5000; // Default port
 
 // Start the Python backend server
-function startBackendServer() {
+async function startBackendServer() {
   console.log('Starting Python backend server...');
   
   // Path to the Python executable (using the system Python)
@@ -26,8 +28,21 @@ function startBackendServer() {
     return null;
   }
   
-  // Spawn the Python process
-  const process = spawn(pythonExecutable, [scriptPath]);
+  // Find an available port
+  try {
+    backendPort = await portfinder.getPortPromise({
+      port: 5000,    // start searching from port 5000
+      stopPort: 6000 // stop searching at port 6000
+    });
+    console.log(`Found available port: ${backendPort}`);
+  } catch (err) {
+    console.error('Could not find an available port:', err);
+    dialog.showErrorBox('Backend Error', 'Could not find an available port.');
+    return null;
+  }
+
+  // Spawn the Python process, passing the port as an argument
+  const process = spawn(pythonExecutable, [scriptPath, '--port', backendPort.toString()]);
   
   // Handle process events
   process.stdout.on('data', (data) => {
@@ -89,12 +104,23 @@ function createWindow() {
 }
 
 // Initialize the app when Electron is ready
-app.whenReady().then(() => {
-  // Start the backend server
-  backendProcess = startBackendServer();
-  
-  // Create the main window
-  createWindow();
+app.whenReady().then(async () => {
+  // Start the backend server and get the port
+  backendProcess = await startBackendServer();
+
+  // Create the main window only if backend started successfully
+  if (backendProcess) {
+    createWindow();
+
+    // Send the port to the renderer process once the window is ready
+    mainWindow.webContents.on('did-finish-load', () => {
+      mainWindow.webContents.send('set-backend-port', backendPort);
+    });
+  } else {
+    // Handle backend start failure (e.g., show error and quit)
+    console.error('Failed to start backend server. Quitting application.');
+    app.quit();
+  }
 
 
   

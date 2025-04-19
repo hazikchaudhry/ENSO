@@ -20,6 +20,7 @@ const bulletBtn = document.getElementById('bullet-btn');
 let documentProcessed = false;
 let statusCheckInterval = null;
 let conversationHistory = [];
+let backendPort = 5000; // Default port, will be updated by main process
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
   boldBtn.addEventListener('click', () => applyFormatting('**', '**'));
   italicBtn.addEventListener('click', () => applyFormatting('*', '*'));
   bulletBtn.addEventListener('click', () => addBulletPoint());
+
+  // Listen for the backend port from the main process
+  window.electronAPI.onBackendPort((event, port) => {
+    console.log(`Received backend port: ${port}`);
+    backendPort = port;
+  });
 });
 
 // Handle document upload
@@ -65,13 +72,27 @@ async function handleUpload() {
     progressBar.style.width = '0%';
     statusMessage.textContent = 'Starting document processing...';
     
-    // Send request to backend
-    await window.electronAPI.backend.processDocument(
+    // Send request to backend using the dynamic port
+    await fetch(`http://localhost:${backendPort}/process`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        file_path: filePath,
+        start_page: startPage,
+        end_page: endPage,
+        model_name: modelSelector.value
+      }),
+    });
+    
+    // Old direct call (replace with fetch)
+    /* await window.electronAPI.backend.processDocument(
       filePath,
       startPage,
       endPage,
       modelSelector.value
-    );
+    ); */
     
     // Start polling for status
     startStatusPolling();
@@ -92,7 +113,15 @@ function startStatusPolling() {
   
   statusCheckInterval = setInterval(async () => {
     try {
-      const status = await window.electronAPI.backend.getStatus();
+      // Fetch status from backend using the dynamic port
+      const response = await fetch(`http://localhost:${backendPort}/status`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const status = await response.json();
+      
+      // Old direct call (replace with fetch)
+      // const status = await window.electronAPI.backend.getStatus();
       
       // Update status message
       statusMessage.textContent = status.message;
@@ -147,13 +176,40 @@ async function handleSendMessage() {
   
   // Display user message
   appendUserMessage(message);
+
+  
+  // Show "ENSO: Thinking..." message
+  const thinkElement = document.createElement('div');
+  thinkElement.className ='message ai-message';
+  thinkElement.textContent = 'Thinking...';
+  chatDisplay.appendChild(thinkElement);
+  
   
   try {
-    // Send message to backend
-    const response = await window.electronAPI.backend.sendMessage(message);
+    // Send message to backend using the dynamic port
+    const fetchResponse = await fetch(`http://localhost:${backendPort}/chat`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message }),
+    });
+
+    if (!fetchResponse.ok) {
+        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+    }
+    const response = await fetchResponse.json();
+    
+    // Old direct call (replace with fetch)
+    // const response = await window.electronAPI.backend.sendMessage(message);
+
+
     
     // Handle streaming response
     if (response.tokens && response.tokens.length > 0) {
+
+      // Remove the "ENSO: Thinking..." message
+      chatDisplay.removeChild(thinkElement);
       // Start a new AI message
       const messageElement = document.createElement('div');
       messageElement.className = 'message ai-message';
@@ -164,7 +220,8 @@ async function handleSendMessage() {
       for (const token of response.tokens) {
         messageElement.textContent += token;
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
-        await new Promise(resolve => setTimeout(resolve, 10)); // Small delay for visual effect
+        const randomInt = Math.floor(Math.random() * 15) + 1;
+        await new Promise(resolve => setTimeout(resolve, randomInt)); // Small delay for visual effect
       }
       
       // Add newline

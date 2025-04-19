@@ -21,6 +21,7 @@
     "electron": "^25.3.1"
   },
   "dependencies": {
-    "electron-store": "^8.1.0"
+    "electron-store": "^8.1.0",
+    "portfinder": "^1.0.36"
   }
 }

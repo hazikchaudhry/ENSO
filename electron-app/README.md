@@ -32,7 +32,7 @@ npm install
 
 ### 3. Start Ollama
 
-Ensure Ollama is running locally with the required models (e.g., mistral:7b-instruct).
+Ensure Ollama is running locally with the required models (e.g., gemma3:4b-it-q4_K_M).
 
 ## Running the Application
 

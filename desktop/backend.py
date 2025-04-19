@@ -374,7 +374,7 @@ class Enso(QMainWindow):
         # Initialize Ollama model with streaming
         global llm_model
         llm_model = OllamaLLM(
-            model="mistral:7b-instruct",
+            model="gemma3:4b-it-q4_K_M",
             temperature=0.7,
             streaming=True
         )
@@ -479,7 +479,7 @@ class Enso(QMainWindow):
         
         # Initialize model selector
         self.model_selector = QComboBox()
-        self.model_selector.addItems(["mistral:7b-instruct"])
+        self.model_selector.addItems(["gemma3:4b-it-q4_K_M"])
         doc_controls_layout.addWidget(self.model_selector)
         
         

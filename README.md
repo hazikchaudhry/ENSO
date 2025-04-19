@@ -23,7 +23,7 @@ pip install -r requirements.txt
 2. Install Ollama on Windows at https://ollama.com/ and download the Mistral model:
 ```bash
 # Pull required model
-ollama pull mistral:7b-instruct
+ollama pull gemma3:4b-it-q4_K_M
 ```
 
 3. Run the application:

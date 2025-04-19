@@ -166,15 +166,20 @@ header h1 {
 .message {
   margin-bottom: 10px;
   white-space: pre-wrap;
+  border: 1px solid #588157;
+  border-radius: 8px;
 }
 
 .user-message {
   color: #344E41;
+  
 }
 
 .ai-message {
   color: #588157;
+  margin-left: 10px;
 }
+
 
 /* Input Container */
 .input-container {

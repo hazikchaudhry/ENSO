@@ -13,6 +13,7 @@ import time
 import random
 import threading
 import json
+import argparse
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -213,7 +214,7 @@ def start_processing():
     file_path = data.get('file_path')
     start_page = data.get('start_page', 1)
     end_page = data.get('end_page')
-    model_name = data.get('model_name', 'mistral:7b-instruct')
+    model_name = data.get('model_name', 'gemma3:4b-it-q4_K_M')
     
     # Validate input
     if not file_path:
@@ -391,4 +392,8 @@ Remember to keep it conversational and focused on ONE thing at a time.""")
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    parser = argparse.ArgumentParser(description='Flask server for Enso Electron app')
+    parser.add_argument('--port', type=int, default=5000, help='Port to run the server on')
+    args = parser.parse_args()
+    
+    app.run(debug=True, port=args.port)
