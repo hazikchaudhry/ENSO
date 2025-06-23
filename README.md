@@ -1,5 +1,7 @@
 # Enso - AI-Powered Learning Assistant
 
+<img width="1247" alt="ENSO" src="https://github.com/user-attachments/assets/50808cf1-891c-4dc2-bbf7-f827b8fa3f07" />
+
 Enso is a modern PyQt6 application that implements an Local LLM-powered learning companion using the Feynman Technique. The application processes documents using natural language processing and engages users in a conversational learning experience guided by an AI model.
 
 ## Features
@@ -7,7 +9,7 @@ Enso is a modern PyQt6 application that implements an Local LLM-powered learning
 - 🎨 Modern gradient UI with smooth transitions and ChatGPT-like interface
 - 📚 Support for PDF, DOCX, and TXT documents
 - 📑 Page range selection for focused learning
-- 🤖 Mistral 7B model integration for intelligent responses
+- 🤖 Local model integration for intelligent responses
 - 💡 RAG-powered context retrieval using FAISS
 - 🎯 Socratic teaching method with progressive hints
 - 💬 Rich text formatting with bold, italic, and bullet points
@@ -20,10 +22,11 @@ Enso is a modern PyQt6 application that implements an Local LLM-powered learning
 pip install -r requirements.txt
 ```
 
-2. Install Ollama on Windows at https://ollama.com/ and download the Mistral model:
+2. Install Ollama on Windows at https://ollama.com/ and download the Mistral model OR Gemma model:
 ```bash
 # Pull required model
 ollama pull mistral:7b-instruct
+ollama run gemma3:4b
 ```
 
 3. Run the application:
