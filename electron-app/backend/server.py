@@ -62,6 +62,7 @@ def process_document(file_path, start_page, end_page, model_name):
         elif file_path.endswith('.txt'):
             text = process_txt(file_path)
         else:
+            
             processing_status["status"] = "error"
             processing_status["message"] = "Unsupported file format"
             return

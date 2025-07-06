@@ -11,6 +11,9 @@ body {
   flex-direction: column;
 }
 
+
+
+
 .container {
   display: flex;
   flex-direction: column;
@@ -20,6 +23,7 @@ body {
   height: 100%;
   box-sizing: border-box;
 }
+
 
 /* Header */
 header {
@@ -43,12 +47,7 @@ header h1 {
   padding: 20px;
   margin-bottom: 15px;
   transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
-  background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0);
 }
 
 .tile h2 {
@@ -60,7 +59,12 @@ header h1 {
 
 .info-container {
   display: flex;
+  margin-top: 33%;
   margin-bottom: 15px;
+  justify-content: space-between;
+  display: flex;
+
+  background-color: rgba(255, 255, 255, 0);
 }
 
 .requirements, .workflow {
@@ -88,7 +92,7 @@ header h1 {
 
 .progress-container {
   height: 10px;
-  background-color: #FAEDCD;
+  background-color: #faedcd12;
   border-radius: 5px;
   margin-bottom: 15px;
   overflow: hidden;
@@ -98,7 +102,7 @@ header h1 {
 .progress-bar {
   height: 100%;
   width: 0;
-  background-color: #D4A373;
+  background-color: #097afb;
   border-radius: 5px;
   transition: width 0.3s ease;
 }
@@ -267,7 +271,6 @@ header h1 {
 }
 
 .input-container::before {
-  content: 'ENSO';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -301,7 +304,7 @@ header h1 {
 }
 
 .format-btn:hover {
-  background-color: #E9EDC9;
+  background-color: #17f1be;
 }
 
 #bold-btn {
@@ -336,7 +339,7 @@ textarea {
 .send-btn {
   width: 40px;
   height: 40px;
-  background: linear-gradient(to bottom, #588157, #3A5A40);
+  background: linear-gradient(to bottom, #5779ce, #00529f);
   border-radius: 20px;
   border: none;
   cursor: pointer;
