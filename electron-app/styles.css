@@ -174,17 +174,33 @@ header h1 {
   white-space: pre-wrap;
   border: 1px solid #588157;
   border-radius: 8px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: messagePhaseIn 0.5s ease-out forwards;
+}
+
+@keyframes messagePhaseIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 .user-message {
   color: #a7f7df;
-
   padding: 10px;
   text-align: left;
   display: flex;
   align-items: left;
   justify-content: left;
-
   background-color: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -201,7 +217,6 @@ header h1 {
   display: flex;
   align-items: left;
   justify-content: center;
-
   background-color: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -210,16 +225,59 @@ header h1 {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-
 /* Input Container */
 .input-container {
-  background: linear-gradient(to bottom, #FEFAE0, #FAEDCD);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 10px;
-  border: 1px solid #CCD5AE;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   margin: 10px;
   padding: 10px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  opacity: 0;
+  transform: translateY(20px);
+  visibility: hidden;
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+}
+
+.input-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  animation: fadeInBlur 0.8s ease-in-out;
+}
+
+@keyframes fadeInBlur {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: translateY(0);
+  }
+}
+
+.input-container::before {
+  content: 'ENSO';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  z-index: 0;
+  letter-spacing: 15px;
 }
 
 .toolbar {
@@ -259,13 +317,15 @@ textarea {
   background-color: transparent;
   padding: 8px;
   font-size: 14px;
-  color: black;
+  color: #DAD7CD;
   min-height: 60px;
   max-height: 120px;
   resize: none;
   outline: none;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .send-container {
