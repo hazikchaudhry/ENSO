@@ -40,4 +40,7 @@ py_main/icons/
 
 # System Files
 .DS_Store
-Thumbs.db
+Thumbs.dbnode_modules/
+*.log
+.DS_Store
+dist/
