@@ -15,7 +15,38 @@ Enso is a modern PyQt6 application that implements an Local LLM-powered learning
 - 💬 Rich text formatting with bold, italic, and bullet points
 - ⚡ Real-time token streaming for dynamic responses
 
-## Setup
+## Setup Instructions For Electron
+
+1. Clone the repository:
+```bash
+git clone https://github.com/hazikchaudhry/ENSO.git
+cd ENSO
+```
+
+2. Install dependencies:
+```bash
+cd electron-app
+npm install
+```
+
+3. Install Python dependencies:
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+4. Run the application:
+```bash
+# Terminal 1 - Start backend
+cd backend
+python server.py
+
+# Terminal 2 - Start Electron app
+cd electron-app
+npm start
+```
+
+## Setup For AI
 
 1. Install dependencies:
 ```bash
