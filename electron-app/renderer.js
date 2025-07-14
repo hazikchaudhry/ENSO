@@ -21,7 +21,7 @@ const inputContainer = document.querySelector('.input-container');
 let documentProcessed = false;
 let statusCheckInterval = null;
 let conversationHistory = [];
-let backendPort = 5000; // Default port, will be updated by main process
+let backendPort = 8080; // Default port, will be updated by main process
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {

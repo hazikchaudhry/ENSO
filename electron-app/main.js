@@ -9,7 +9,7 @@ let mainWindow;
 
 // Keep a reference to the Python backend process
 let backendProcess = null;
-let backendPort = 5000; // Default port
+let backendPort = 8080; // Default port
 
 // Start the Python backend server
 async function startBackendServer() {
@@ -31,8 +31,8 @@ async function startBackendServer() {
   // Find an available port
   try {
     backendPort = await portfinder.getPortPromise({
-      port: 5000,    // start searching from port 5000
-      stopPort: 6000 // stop searching at port 6000
+      port: 8080,    // start searching from port 8080
+      stopPort: 9000 // stop searching at port 9000
     });
     console.log(`Found available port: ${backendPort}`);
   } catch (err) {

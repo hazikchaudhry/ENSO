@@ -16,7 +16,16 @@ import json
 import argparse
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Configure CORS more explicitly with resources setting
+CORS(app, resources={r"/*": {
+    "origins": "*",  # Allow all origins for now
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+    "expose_headers": ["Content-Type", "X-Total-Count"],
+    "supports_credentials": True,
+    "max_age": 600
+}})
 
 # Global variables to store processing state
 processing_status = {
@@ -197,6 +206,17 @@ def _update_conversation_state(user_text):
                 teaching_state["related_concepts"] = related_concepts[concept]
             break
 
+@app.before_request
+def log_request_info():
+    print("==== REQUEST RECEIVED ====")
+    print(f"Headers: {request.headers}")
+    print(f"Method: {request.method}")
+    print(f"Path: {request.path}")
+    print(f"Data: {request.get_data()}")
+    # Flush to ensure output is visible immediately
+    import sys
+    sys.stdout.flush()
+
 @app.route('/process', methods=['POST'])
 def start_processing():
     """Start document processing"""
@@ -359,14 +379,7 @@ Occasionally (about 1/3 of the time), use one of these techniques to make your q
 Remember to keep it conversational and focused on ONE thing at a time.""")
     ])
     
-    # Prepare related concepts prompt
-    related_concepts_prompt = ""
-    if teaching_state.get("related_concepts"):
-        related = ", ".join(teaching_state["related_concepts"][:3])
-        connection_prompt = "\nExplore connections between these concepts and identify patterns or relationships. "
-        depth_prompt = "\nConsider how these concepts build upon or influence each other. "
-        related_concepts_prompt = f"\nRelated concepts to explore: {related}. {connection_prompt if teaching_state['depth_level'] >= 2 else ''}{depth_prompt if teaching_state['depth_level'] >= 3 else ''}"
-    
+    # Prepare related conceptskk
     # Create chain
     chain = prompt | llm_model
     
@@ -392,9 +405,40 @@ Remember to keep it conversational and focused on ONE thing at a time.""")
         "tokens": handler.tokens  # For streaming implementation on frontend
     })
 
+@app.route('/test', methods=['GET'])
+def test_endpoint():
+    """Simple test endpoint to verify server functionality and CORS"""
+    print("Test endpoint called!") 
+    return jsonify({"status": "ok", "message": "Server is running and CORS is configured correctly"})
+
+@app.after_request
+def add_cors_headers(response):
+    """Add CORS headers to all responses"""
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Flask server for Enso Electron app')
-    parser.add_argument('--port', type=int, default=5000, help='Port to run the server on')
+    parser.add_argument('--port', type=int, default=8080, help='Port to run the server on')
     args = parser.parse_args()
     
-    app.run(debug=True, port=args.port)
+    print(f"Starting Flask server on port {args.port}...")
+    print("CORS settings:")
+    print(f"- Origins: {app.config.get('CORS_ORIGINS', ['*'])}")
+    print(f"- Methods: {app.config.get('CORS_METHODS', ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])}")
+    print(f"- Headers: {app.config.get('CORS_HEADERS', ['Content-Type', 'Authorization', 'X-Requested-With'])}")
+    
+    # Force stdout to flush after each print for clearer logging
+    import sys
+    sys.stdout.flush()
+    
+    # Capture standard output and stderr for better debugging
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger('werkzeug')
+    logger.setLevel(logging.INFO)
+    
+    # Use threaded=True for better handling of concurrent requests
+    app.run(debug=True, port=args.port, threaded=True, use_reloader=False)
