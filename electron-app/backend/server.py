@@ -129,82 +129,6 @@ def process_txt(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         return f.read()
 
-def _analyze_understanding(user_text, context):
-    """Let the AI assess understanding through natural conversation"""
-    # For now, maintain a moderate understanding level
-    return 0.5
-
-def _update_understanding_level(user_text, context):
-    """Update the understanding level based on user's response quality"""
-    current_level = teaching_state["understanding_level"]
-    understanding_score = _analyze_understanding(user_text, context)
-    
-    # Gradual level adjustment
-    if understanding_score >= 0.8 and current_level < 3:
-        teaching_state["understanding_level"] = min(3, current_level + 1)
-    elif understanding_score <= 0.3 and current_level > 0:
-        teaching_state["understanding_level"] = max(0, current_level - 1)
-    elif 0.3 < understanding_score < 0.8:
-        # Maintain current level but track progress
-        teaching_state["progress_to_next"] = understanding_score
-
-def _detect_misconceptions(user_text, context):
-    """Detect potential misconceptions in user's response by comparing with context"""
-    misconceptions = []
-    
-    # Convert to lowercase for case-insensitive comparison
-    user_text = user_text.lower()
-    context = context.lower()
-    
-    # Common misconception patterns
-    contradictions = [
-        ("always", "sometimes"),
-        ("never", "can"),
-        ("only", "also"),
-        ("all", "some")
-    ]
-    
-    # Check for direct contradictions
-    for word1, word2 in contradictions:
-        if word1 in user_text and word2 in context:
-            misconceptions.append(f"Potential oversimplification with '{word1}'")
-    
-    # Check for incorrect relationships
-    if "because" in user_text:
-        cause_effect = user_text.split("because")[1].strip()
-        if cause_effect and cause_effect not in context:
-            misconceptions.append("Potential incorrect cause-effect relationship")
-    
-    # Check for absolute statements
-    absolute_words = ["always", "never", "all", "none", "every", "only"]
-    for word in absolute_words:
-        if word in user_text and word not in context:
-            misconceptions.append(f"Potential overgeneralization with '{word}'")
-    
-    return misconceptions
-
-def _update_conversation_state(user_text):
-    """Update conversation state based on user's response"""
-    # Extract potential topics from user text
-    text_lower = user_text.lower()
-    key_concepts = ["neural network", "transformer", "attention", "encoder", "decoder", "layer"]
-    related_concepts = {
-        "neural network": ["layer", "input", "output"],
-        "transformer": ["attention", "encoder", "decoder"],
-        "attention": ["encoder", "decoder", "weights"],
-        "encoder": ["input", "representation"],
-        "decoder": ["output", "prediction"],
-        "layer": ["neural network", "transformation"]
-    }
-    
-    # Update current concept and track related ones
-    for concept in key_concepts:
-        if concept in text_lower:
-            teaching_state["current_topic"] = concept
-            # Store related concepts for future exploration
-            if concept in related_concepts:
-                teaching_state["related_concepts"] = related_concepts[concept]
-            break
 
 @app.before_request
 def log_request_info():
@@ -259,7 +183,7 @@ def get_status():
 @app.route('/chat', methods=['POST'])
 def chat():
     """Handle chat request"""
-    global conversation_history, teaching_state, vectorstore, llm_model
+    global conversation_history, vectorstore, llm_model
     
     # Check if document has been processed
     if not vectorstore or not llm_model:
@@ -275,8 +199,6 @@ def chat():
     # Add to conversation history
     conversation_history.append(user_message)
     
-    # Update conversation state
-    _update_conversation_state(user_message)
     
     # Get relevant context from vectorstore
     context = ""
@@ -391,10 +313,7 @@ Remember to keep it conversational and focused on ONE thing at a time.""")
         "input": user_message,
         "context": context,
         "history": formatted_history,
-        "topic": teaching_state["current_topic"] or "not set",
-        "understanding": teaching_state["understanding_level"],
         "depth": teaching_state["depth_level"],
-        "related_concepts_prompt": related_concepts_prompt
     }, config={"callbacks": [handler]})
     
     # Add to conversation history
